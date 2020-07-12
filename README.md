@@ -1,68 +1,195 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# HKTVMALL Coding Testing 
+## Prepare 
+Front end : 
+IDE : VSCode
+Framework: Reactjs
 
-## Available Scripts
+Back end: 
+IDE: IntelliJ
+Framework: Spring boot
 
-In the project directory, you can run:
+Database: MySql
 
-### `yarn start`
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Design Idea
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+Database : 
+There are two tables in the MySQL database.
+![](readMe_files/1.jpg)
 
-### `yarn test`
+The relationship of tables is one to many. 
+A product should be stored in different warehouses.
+Each warehouse has its quantities of a product.
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `yarn build`
+### The Back end design
+The project is created by Spring boot framework. 
+There are four packages which are controller, exception, model and repository.
+![](readMe_files/2.jpg)
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+The main ideas are using restful APIs for CURD product information.
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Below the coding is restful API for modifying product information.
+```
+ @GetMapping("/products")
+    public List<Product> getAllProdcuts() {
+        return productRepository.findAll();
+    }
+	
+ @PostMapping("/product")
+    public Product createProdcut(@Valid @RequestBody Product product) {
+        return productRepository.save(product);
+    }
+	
+ @PutMapping("/products/{code}")
+	public Product updateProdcut(@PathVariable String code,
+								 @Valid @RequestBody Product newProductInfo) throws ProductNotFoundException {
+		return productRepository.findById(code)
+				.map(product -> {
+					product.setCode(newProductInfo.getCode());
+					product.setName(newProductInfo.getName());
+					product.setWeight(newProductInfo.getWeight());
+					return productRepository.save(product);
+				}).orElseThrow(() -> new ProductNotFoundException("Product not found with code " + code));
+	}
+```
+The github link : [](https://github.com/Silasip2002/hktvmallBackend)
 
-### `yarn eject`
+## Front End Design
+The front page is created by Reas js. 
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+For getting the list of products. The page will call the  back end API, which will return 
+a JSON result. 
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+![](readMe_files/3.jpg)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+![](readMe_files/4.jpg)
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+The github link : [](https://github.com/Silasip2002/hktvmall)
 
-## Learn More
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+# Installation Gudie : 
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## step 1 Create a DB :
 
-### Code Splitting
+```
+-- phpMyAdmin SQL Dump
+-- version 4.9.3
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost:8889
+-- Generation Time: Jul 12, 2020 at 02:04 PM
+-- Server version: 5.7.26
+-- PHP Version: 7.4.2
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
 
-### Analyzing the Bundle Size
+--
+-- Database: `hktvmall`
+--
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+-- --------------------------------------------------------
 
-### Making a Progressive Web App
+--
+-- Table structure for table `product`
+--
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+CREATE TABLE `product` (
+  `code` varchar(20) NOT NULL,
+  `name` varchar(99) NOT NULL,
+  `weight` float NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-### Advanced Configuration
+--
+-- Dumping data for table `product`
+--
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+INSERT INTO `product` (`code`, `name`, `weight`) VALUES
+('FM-HKTV01', 'Face Mask', 100),
+('FM-HKTV02', 'Korean Face Mask', 200);
 
-### Deployment
+-- --------------------------------------------------------
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+--
+-- Table structure for table `warehouse`
+--
 
-### `yarn build` fails to minify
+CREATE TABLE `warehouse` (
+  `id` int(10) NOT NULL,
+  `location` varchar(10) NOT NULL,
+  `quantity` int(10) NOT NULL,
+  `product_code` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+--
+-- Dumping data for table `warehouse`
+--
+
+INSERT INTO `warehouse` (`id`, `location`, `quantity`, `product_code`) VALUES
+(1, 'TKO', 1000, 'FM-HKTV01'),
+(2, 'TKO', 200, 'FM-HKTV01'),
+(3, 'MK', 100, 'FM-HKTV01'),
+(4, 'ST', 4000, 'FM-HKTV01');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `product`
+--
+ALTER TABLE `product`
+  ADD PRIMARY KEY (`code`);
+
+--
+-- Indexes for table `warehouse`
+--
+ALTER TABLE `warehouse`
+  ADD KEY `FKdqkh4y375pbc2t9qi8v5ylwk4` (`product_code`);
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `warehouse`
+--
+ALTER TABLE `warehouse`
+  ADD CONSTRAINT `FKdqkh4y375pbc2t9qi8v5ylwk4` FOREIGN KEY (`product_code`) REFERENCES `product` (`code`);
+```
+
+### Step 2 :  Connect the DB
+
+Set the db informatin in the src/main/java/resource/application.properties
+```
+## Spring DATASOURCE (DataSourceAutoConfiguration & DataSourceProperties)
+spring.datasource.url = jdbc:mysql://localhost:8889/hktvmall
+spring.datasource.username = silas1
+spring.datasource.password = silas1
+## Hibernate Properties
+# The SQL dialect makes Hibernate generate better SQL for the chosen database
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5InnoDBDialect
+# Hibernate ddl auto (create, create-drop, validate, update)
+spring.jpa.hibernate.ddl-auto = update
+```
+
+### Step 3: run the back end server
+run by the IDE.
+
+### Step 4: run the front end server 
+```
+npm start
+```
+
+
+# Conclusion: 
+This project is a challenge for me. Even though the project is not completed,
+but I have learnt a lot from it. It is a short time to learn a new framework and restful Api. 
+The most difficult challenge is data translation as the import data is a CSV file.
+It is difficult for creating new product information in the two table database. 
+The next action should need to cut off the original data from the CSV file then using the 
+post method to send to the backend for inserting the new product.
+
+
